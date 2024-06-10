@@ -4,24 +4,58 @@ Apply the model on a external dataset
 
 # %%
 # IMPORTS
-%load_ext autoreload
-%autoreload 2
-
+# %load_ext autoreload
+# %autoreload 2
 import sys
+import os
 sys.path.append("..")   # fix to import modules from root
 from src.general_imports import *
 from src import paths
 
 from src import modelling_bio_beta as modelling
+# %% #################
+# Determine the directory containing the script
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
-N_CORES = 15
+# Change to the script directory
+os.chdir(script_dir)
+
+# Change working directory to 'probAge' using relative path
+os.chdir('..')
+
+
+# Print the current working directory
+print("Current Working Directory:", os.getcwd())
+# %% #################
+
+N_CORES = 10
 REF_DSET_NAME = 'probage_bc'
-EXPORT_FILE_PATH = '../exports/processed_file.csv'
+
+
+normalization_list = ["Raw_Beta_Values_QCed", 
+                      "Normalised_Beta_Values_noob",
+                      "Normalised_Beta_Values_bmiq", 
+                      "Normalised_Beta_Values_noob_bmiq"]
+disease_list = ["IFN_40","Sotos_71"]
+
+normalization = normalization_list[0]
+disease = disease_list[1]
+
+EXPORT_DIR_PATH = 'exports'
+EXPORT_FILE_NAME = 'probage'+'_' + normalization + "_"  + disease + ".csv"
+EXPORT_FILE_PATH = EXPORT_DIR_PATH + "/" + EXPORT_FILE_NAME
 
 # Set paths to external data
-path_to_data = '../data/downsyndrome.csv'
-path_to_meta = '../data/downsyndrome_meta.csv'
+#path_to_data = 'data/Raw_Beta_Values_QCed_Sotos_71.csv'
+DATA_PATH = 'data'
+DATA_FILE_NAME = normalization + "_"  + disease + ".csv"
+path_to_data = DATA_PATH + "/" + DATA_FILE_NAME
 
+path_to_meta = DATA_PATH + "/" + 'sample_data' + '_'  + disease + ".csv"
+
+
+
+# %% #################
 # Load external datasets to pandas
 data_df = pd.read_csv(path_to_data, index_col=0)
 meta_df = pd.read_csv(path_to_meta, index_col=0)
@@ -35,7 +69,7 @@ amdata = ad.AnnData(data_df[part_index_intersection],
 
 
 # Load reference sites
-sites_ref = pd.read_csv('../resources/wave3_sites.csv', index_col=0)
+sites_ref = pd.read_csv('resources/wave3_sites.csv', index_col=0)
 # amdata = ad.read_h5ad('resources/downsyndrome.h5ad')
 
 # Load intersection of sites in new dataset
@@ -89,3 +123,4 @@ for param in ['acc', 'bias']:
 
 # Export
 amdata.var.to_csv(EXPORT_FILE_PATH)
+
