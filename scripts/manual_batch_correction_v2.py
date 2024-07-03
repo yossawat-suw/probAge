@@ -29,24 +29,33 @@ print("Current Working Directory:", os.getcwd())
 # %% #################
 
 N_CORES = 10
+
 REF_DSET_NAME = 'probage_bc'
+EXPORT_DIR_PATH = './exports'
+DATA_PATH = './data'
 
 normalization_list = ["Raw_Beta_Values_QCed", 
                       "Normalised_Beta_Values_noob",
                       "Normalised_Beta_Values_bmiq", 
                       "Normalised_Beta_Values_noob_bmiq"]
-disease_list = ["IFN_40","Sotos_71"]
+disease_list = ["IFN_40","Sotos_71","Control_876"]
 
-EXPORT_DIR_PATH = 'exports'
+normalization_chosen = normalization_list
+disease_chosen = disease_list[0:2]
 
-# Set paths to external data
-DATA_PATH = 'data'
 
+#%%
 # Load reference sites
-sites_ref = pd.read_csv('resources/wave3_sites.csv', index_col=0)
+#sites_ref = pd.read_csv('resources/wave3_sites.csv', index_col=0)
 
-for normalization in normalization_list:
-    for disease in disease_list:
+
+# %%
+for normalization in normalization_chosen:
+
+    data_ref = ad.read_h5ad('./exports/'+normalization+'_Control_876_sites_fitted.h5ad')
+    sites_ref = data_ref.obs
+
+    for disease in disease_chosen:
         EXPORT_FILE_NAME = 'probage' + '_' + normalization + "_" + disease + ".csv"
         EXPORT_FILE_PATH = EXPORT_DIR_PATH + "/" + EXPORT_FILE_NAME
 
@@ -73,12 +82,12 @@ for normalization in normalization_list:
 
         amdata = amdata[intersection].copy()
 
-        # %% #################
+
         # BATCH (MODEL) CORRECTION
 
         # Create amdata chunks using only control
         amdata_chunks = modelling.make_chunks(amdata[:, amdata.var.status=='control'],
-                                              chunk_size=15)
+                                                chunk_size=15)
 
         with Pool(N_CORES) as p:
             offsets_chunks = list(tqdm(p.imap(modelling.site_offsets, amdata_chunks), total=len(amdata_chunks)))
@@ -90,7 +99,7 @@ for normalization in normalization_list:
         amdata.obs.eta_0 = amdata.obs.eta_0 + amdata.obs.offset
         amdata.obs.meth_init  = amdata.obs.meth_init + amdata.obs.offset
 
-        # %% ##################
+
         # PERSON MODELLING  
         print(f'Calculating person parameters (acceleration and bias) for {normalization} and {disease}...')
 
@@ -106,3 +115,13 @@ for normalization in normalization_list:
         # Export
         amdata.var.to_csv(EXPORT_FILE_PATH)
         print(f'Exported results to {EXPORT_FILE_PATH}')
+
+
+#%%
+#sns.scatterplot(amdata.var,x="age",y="acc_probage_bc")
+sns.scatterplot(amdata.var,x="age",y="bias_probage_bc")
+# %%
+amdata.var
+# %%
+param_data
+# %%

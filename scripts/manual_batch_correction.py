@@ -36,10 +36,10 @@ normalization_list = ["Raw_Beta_Values_QCed",
                       "Normalised_Beta_Values_noob",
                       "Normalised_Beta_Values_bmiq", 
                       "Normalised_Beta_Values_noob_bmiq"]
-disease_list = ["IFN_40","Sotos_71"]
+disease_list = ["IFN_40","Sotos_71","Control_876"]
 
 normalization = normalization_list[0]
-disease = disease_list[1]
+disease = disease_list[2]
 
 EXPORT_DIR_PATH = 'exports'
 EXPORT_FILE_NAME = 'probage'+'_' + normalization + "_"  + disease + ".csv"
